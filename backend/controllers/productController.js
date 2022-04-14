@@ -1,4 +1,5 @@
 const Product = require("../models/productModel");
+const ErrorHandler = require("../util/errorHandler");
 
 // admin + merchant
 
@@ -74,12 +75,24 @@ exports.deleteProduct = async (req, res, next) => {
 
 exports.getSingleProduct = async (req, res, next) => {
 	const product = await Product.findById(req.params.id);
+
 	if (!product) {
-		return res.status(404).json({
-			success: false,
-			message: "Product Not Found",
-		});
+		// Instead of using an object to hold the state of something over a request, we can use res.locals too, which
+		return next(new ErrorHandler("Product Not Found", 404));
+		/* 
+		
+		Look at the way in which app.js is setup, first there's router middle ware and then there's the error middleware.
+		
+		The router middlware will trigger router.<something> which'll then trigger some of the function here, if it triggers
+		getSingleProduct function AND if there's a error the 'next' function will be triggered which will then for the next
+		middleware which is the error middlware!
+
+		At this point the errorHandler object has the following properties of statusCode, message and other related
+	  stuff. Which'll then be returned by the error middleware.
+		
+		*/
 	}
+
 	return res.status(200).json({
 		success: true,
 		product,
