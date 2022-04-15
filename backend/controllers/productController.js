@@ -1,7 +1,7 @@
 const Product = require("../models/productModel");
 const ErrorHandler = require("../util/errorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
-
+const ApiFeatures = require("../util/apiFeatures");
 // admin + merchant
 
 exports.createProduct = catchAsyncErrors(async (req, res, next) => {
@@ -20,8 +20,20 @@ exports.createProduct = catchAsyncErrors(async (req, res, next) => {
 // async because we want to perform actions in an order
 
 exports.getAllProducts = catchAsyncErrors(async (req, res) => {
-	const products = await Product.find();
+	const resultPerPage = 5;
+	const productCount = await Product.countDocuments();
 
+	const apiFeature = new ApiFeatures(Product.find(), req.query)
+		.search()
+		.filter()
+		.pagination(productCount, resultPerPage);
+	const products = await apiFeature.query;
+	/*
+	I feel like this is the way it should be. 
+	Await should be present with the search() function, as the search
+	function is one where we are making an find call to the mongodb
+	collection. So, if that's being awaited everything would work fine?
+	*/
 	if (!products) {
 		return next(new ErrorHandler("Products Not Found", 404));
 	}
@@ -30,6 +42,7 @@ exports.getAllProducts = catchAsyncErrors(async (req, res) => {
 		// 201 means a resource has been created successfully
 		success: true,
 		products,
+		productCount,
 	});
 });
 
