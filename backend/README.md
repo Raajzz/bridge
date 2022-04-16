@@ -79,3 +79,23 @@ Delete an existing product
 > API Call => http://localhost:4000/api/v1/product/delete/6257b9d1758631102aa5d5cd <br> The `_id` of the product must already exist
 
 <hr>
+
+# PACKAGE EXPLANATION
+
+## bcrypt
+
+> To hash passwords before storing it into the database
+
+## validator
+
+> To validate mail ids
+
+## nodemailer
+
+> For OTPs and stuff via mail
+
+## jsonwebtoken
+
+> Web Token
+
+## 
