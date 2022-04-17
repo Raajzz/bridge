@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 // validator is used to validate whether the given "something" (example, email) follows the standards.
 
@@ -44,7 +45,35 @@ const userSchema = new mongoose.Schema({
 });
 
 userSchema.pre("save", async function (next) {
+	// runs when a password is not modified rather some other user
+	// field is modified
+
+	if (!this.isModified("password")) {
+		next();
+	}
+
 	this.password = await bcrypt.hash(this.password, 10);
+	// 10 characters for password
 });
+
+// JWT TOKEN
+
+userSchema.methods.getJWTToken = function () {
+	return jwt.sign(
+		{
+			id: this._id,
+		},
+		process.env.JWT_SECRET,
+		{
+			expiresIn: process.env.JWT_EXPIRE,
+		}
+	);
+};
+
+// compare password
+
+userSchema.methods.comparePassword = async function (password) {
+	return await bcrypt.compare(enteredPassword, this.password);
+};
 
 module.exports = mongoose.model("user", userSchema);
